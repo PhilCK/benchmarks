@@ -13,27 +13,29 @@
  *
  * 1.
  * Linux Ubuntu 18 - GCC 7.3.0 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
- * gcc bench_strcmp.c -O3
- *
+ * gcc bench_err_check.c -O3
+ * clang bench_err_check.c -O3
  * 2.
  * MacOSX 10.14 - Clang 1000.11.45 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
- * clang bench_strcmp.c -O3 
+ * clang bench_err_check.c -O3 
  *
  * Mixed Input Results
  * -------------------
  *
  *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table 
  * ==========|==========|==========|=======|=============|============
- *  1.       | 352      | xxx      | xxx   | 186         | 380         
- *  2.       | 660      | 564      | 636   | 837         | 375         
+ *  1(gcc)   | 399      | 409      | 425   | 318         | 533         
+ *  1(clang) | 717      | 423      | 381   | 593         | 291
+ *  2        | 660      | 564      | 636   | 837         | 375         
  *
  * Valid Input Results
  * -------------------
  *
  *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table 
  * ==========|==========|==========|=======|=============|============
- *  1.       | 154      | xxx      | xxx   | 141         | 196         
- *  2.       | 369      | 306      | 258   | 432         | 357         
+ *  1(gcc)   | 174      | 170      | 338   | 136         | 334         
+ *  1(clang) | 338      | 158      | 184   | 325         | 275
+ *  2        | 369      | 306      | 258   | 432         | 357         
  *
  */
 
