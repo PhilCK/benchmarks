@@ -22,20 +22,20 @@
  * Mixed Input Results
  * -------------------
  *
- *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table 
- * ==========|==========|==========|=======|=============|============
- *  1(gcc)   | 399      | 409      | 425   | 318         | 533         
- *  1(clang) | 717      | 423      | 381   | 593         | 291
- *  2        | 660      | 564      | 636   | 837         | 375         
- *
+ *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
+ * ==========|==========|==========|=======|=============|=============|==========
+ *  1(gcc)   | 399      | 409      | 425   | 318         | 533         | 
+ *  1(clang) | 717      | 423      | 381   | 593         | 291         | 
+ *  2        | 660      | 564      | 636   | 837         | 375         | 168
+ *  
  * Valid Input Results
  * -------------------
  *
- *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table 
- * ==========|==========|==========|=======|=============|============
- *  1(gcc)   | 174      | 170      | 338   | 136         | 334         
- *  1(clang) | 338      | 158      | 184   | 325         | 275
- *  2        | 369      | 306      | 258   | 432         | 357         
+ *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
+ * ==========|==========|==========|=======|=============|=============|==========
+ *  1(gcc)   | 174      | 170      | 338   | 136         | 334         |
+ *  1(clang) | 338      | 158      | 184   | 325         | 275         |
+ *  2        | 369      | 306      | 258   | 432         | 357         | 180
  *
  */
 
@@ -359,6 +359,31 @@ bench_error_table(
 }
 
 
+/* spins over the data */
+uint64_t
+bench_error_no_check(
+        struct env *inputs,
+        uint64_t input_count)
+{
+        uint64_t i;
+        volatile uint64_t invalid = 0;
+        volatile uint64_t valid = 0;
+        uint64_t start = get_time_rdtsc();
+
+        for(i = 0; i < input_count; ++i) {
+                uint64_t err = 0;
+
+                valid += 1;
+        }
+
+  uint64_t end = get_time_rdtsc();
+
+  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+  
+  return end - start;
+}
+
+
 
 /* Benchmark */
 int
@@ -370,6 +395,7 @@ main() {
   printf("giant check: %llu\n--\n", bench_error_giant_check(mixed_inputs, mixed_input_count));
   printf("branch tree: %llu\n--\n", bench_error_branch_tree(mixed_inputs, mixed_input_count));
   printf("Error Table: %llu\n--\n", bench_error_table(mixed_inputs, mixed_input_count));
+  printf("No check: %llu\n--\n", bench_error_no_check(mixed_inputs, mixed_input_count));
   
   printf("\nValid Inputs\n");
   printf("============\n");
@@ -378,6 +404,7 @@ main() {
   printf("giant check: %llu\n--\n", bench_error_giant_check(valid_inputs, valid_input_count));
   printf("branch tree: %llu\n--\n", bench_error_branch_tree(valid_inputs, valid_input_count));
   printf("Error Table: %llu\n--\n", bench_error_table(valid_inputs, valid_input_count));
+  printf("No check: %llu\n--\n", bench_error_no_check(valid_inputs, valid_input_count));
 
   return 0;
 }
