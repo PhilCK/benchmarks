@@ -4,7 +4,8 @@
  *
  * - Various strcmp methods
  * - Using RTDSC timer
- *
+ * - -msse didn't show any diff on platforms 1 and 2
+ * 
  * Platforms
  * ---------
  *
@@ -12,12 +13,17 @@
  * Linux Ubuntu 18 - GCC 7.3.0 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
  * gcc bench_strcmp.c -O3
  *
+ * 2.
+ * MacOSX 10.14 - Clang 1000.11.45 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
+ * clang bench_strcmp.c -O3 
+ *
  * Results
  * -------
  *
  *  Platform | strcmp | strcmp with prefix | hash runtime | hash ahead of time
  * ==========|========|====================|==============|===================
  *  1.       | 1318   | 359                | 1838         | 140
+ *  2.       | 32715  | 475                | 2640         | 243 
  *
  */
 
@@ -190,10 +196,10 @@ bench_hash_at() {
 /* Benchmark */
 int
 main() {
-	printf("strcmp: %lu\n--\n", bench_strcmp());
-	printf("strcmp with prefix: %lu\n--\n", bench_strcmp_prefix());
-	printf("hash rt: %lu\n--\n", bench_hash_rt());
-	printf("hash at: %lu\n--\n", bench_hash_at());
+	printf("strcmp: %llu\n--\n", bench_strcmp());
+	printf("strcmp with prefix: %llu\n--\n", bench_strcmp_prefix());
+	printf("hash rt: %llu\n--\n", bench_hash_rt());
+	printf("hash at: %llu\n--\n", bench_hash_at());
 
 	return 0;
 }
