@@ -12,20 +12,21 @@
  * ---------
  *
  * 1.
- * Linux Ubuntu 18 - GCC 7.3.0 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
- * gcc bench_err_check.c -O3
- * clang bench_err_check.c -O3
+ * Linux Ubuntu 18 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
+ * gcc bench_err_check.c -O3 (GCC 7.3.0)
+ * clang bench_err_check.c -O3 (Clang 6, 7)
  * 2.
- * MacOSX 10.14 - Clang 1000.11.45 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
- * clang bench_err_check.c -O3 
+ * MacOSX 10.14 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
+ * clang bench_err_check.c -O3 (Clang 1000.11.45)
  *
  * Mixed Input Results
  * -------------------
  *
  *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
  * ==========|==========|==========|=======|=============|=============|==========
- *  1(gcc)   | 399      | 409      | 425   | 318         | 533         | 
- *  1(clang) | 717      | 423      | 381   | 593         | 291         | 
+ *  1(gcc)   | 399      | 409      | 425   | 318         | 533         | 192
+ *  1(Clang6)| 717      | 423      | 381   | 593         | 291         | 117
+ *  1(Clang7)| 664      | 397      | 322   | 729         | 265         | 121
  *  2        | 660      | 564      | 636   | 837         | 375         | 168
  *  
  * Valid Input Results
@@ -33,8 +34,9 @@
  *
  *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
  * ==========|==========|==========|=======|=============|=============|==========
- *  1(gcc)   | 174      | 170      | 338   | 136         | 334         |
- *  1(clang) | 338      | 158      | 184   | 325         | 275         |
+ *  1(gcc)   | 174      | 170      | 338   | 136         | 334         | 114
+ *  1(Clang6)| 338      | 158      | 184   | 325         | 275         | 128
+ *  1(Clang7)| 323      | 148      | 148   | 342         | 266         | 125
  *  2        | 369      | 306      | 258   | 432         | 357         | 180
  *
  */
