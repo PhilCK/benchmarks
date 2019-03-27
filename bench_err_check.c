@@ -58,8 +58,8 @@
 /* Benchmark checks this that the envelope is valid */
 /* top left corner must be less than bottom right corner */
 struct env {
-  int top_left_x, top_left_y;
-  int bot_right_x, bot_right_y;
+        int top_left_x, top_left_y;
+        int bot_right_x, bot_right_y;
 };
 
 /* input data */
@@ -351,11 +351,11 @@ bench_error_branch_tree(
                 valid += 1;
         }
 
-  uint64_t end = get_time_rdtsc();
+        uint64_t end = get_time_rdtsc();
 
-  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
-  
-  return end - start;
+        printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+
+        return end - start;
 }
 
 
@@ -404,11 +404,11 @@ bench_error_unlikely_branch_tree(
                 valid += 1;
         }
 
-  uint64_t end = get_time_rdtsc();
+        uint64_t end = get_time_rdtsc();
 
-  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
-  
-  return end - start;
+        printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+
+        return end - start;
 }
 
 /* checks inputs with one large if/else if block */
@@ -440,11 +440,11 @@ bench_error_table(
                 }
         }
 
-  uint64_t end = get_time_rdtsc();
+        uint64_t end = get_time_rdtsc();
 
-  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
-  
-  return end - start;
+        printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+
+        return end - start;
 }
 
 
@@ -465,11 +465,11 @@ bench_error_no_check(
                 valid += 1;
         }
 
-  uint64_t end = get_time_rdtsc();
+        uint64_t end = get_time_rdtsc();
 
-  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
-  
-  return end - start;
+        printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+
+        return end - start;
 }
 
 
@@ -477,27 +477,27 @@ bench_error_no_check(
 /* Benchmark */
 int
 main() {
-  printf("Mixed Inputs\n");
-  printf("============\n");
-  printf("branches: %llu\n--\n", bench_error_branches(mixed_inputs, mixed_input_count));
-  printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(mixed_inputs, mixed_input_count));
-  printf("giant check: %llu\n--\n", bench_error_giant_check(mixed_inputs, mixed_input_count));
-  printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(mixed_inputs, mixed_input_count));
-  printf("branch tree: %llu\n--\n", bench_error_branch_tree(mixed_inputs, mixed_input_count));
-  printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(mixed_inputs, mixed_input_count));
-  printf("Error Table: %llu\n--\n", bench_error_table(mixed_inputs, mixed_input_count));
-  printf("No check: %llu\n--\n", bench_error_no_check(mixed_inputs, mixed_input_count));
-  
-  printf("\nValid Inputs\n");
-  printf("============\n");
-  printf("branches: %llu\n--\n", bench_error_branches(valid_inputs, valid_input_count));
-  printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(valid_inputs, valid_input_count));
-  printf("giant check: %llu\n--\n", bench_error_giant_check(valid_inputs, valid_input_count));
-  printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(valid_inputs, valid_input_count));
-  printf("branch tree: %llu\n--\n", bench_error_branch_tree(valid_inputs, valid_input_count));
-  printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(valid_inputs, valid_input_count));
-  printf("Error Table: %llu\n--\n", bench_error_table(valid_inputs, valid_input_count));
-  printf("No check: %llu\n--\n", bench_error_no_check(valid_inputs, valid_input_count));
+        printf("Mixed Inputs\n");
+        printf("============\n");
+        printf("branches: %llu\n--\n", bench_error_branches(mixed_inputs, mixed_input_count));
+        printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(mixed_inputs, mixed_input_count));
+        printf("giant check: %llu\n--\n", bench_error_giant_check(mixed_inputs, mixed_input_count));
+        printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(mixed_inputs, mixed_input_count));
+        printf("branch tree: %llu\n--\n", bench_error_branch_tree(mixed_inputs, mixed_input_count));
+        printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(mixed_inputs, mixed_input_count));
+        printf("Error Table: %llu\n--\n", bench_error_table(mixed_inputs, mixed_input_count));
+        printf("No check: %llu\n--\n", bench_error_no_check(mixed_inputs, mixed_input_count));
 
- return 0;
+        printf("\nValid Inputs\n");
+        printf("============\n");
+        printf("branches: %llu\n--\n", bench_error_branches(valid_inputs, valid_input_count));
+        printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(valid_inputs, valid_input_count));
+        printf("giant check: %llu\n--\n", bench_error_giant_check(valid_inputs, valid_input_count));
+        printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(valid_inputs, valid_input_count));
+        printf("branch tree: %llu\n--\n", bench_error_branch_tree(valid_inputs, valid_input_count));
+        printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(valid_inputs, valid_input_count));
+        printf("Error Table: %llu\n--\n", bench_error_table(valid_inputs, valid_input_count));
+        printf("No check: %llu\n--\n", bench_error_no_check(valid_inputs, valid_input_count));
+
+        return 0;
 }
