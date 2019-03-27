@@ -22,31 +22,57 @@
  * MacOSX 10.14 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
  * clang bench_err_check.c -O3 (Clang 1000.11.45)
  *
+ * 3.
+ * Linux Ubuntu 16 - Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+ * gcc bench_strcmp.c -DBENCH_TO_RUN=BENCH_<TEST> -O3 (GCC 5.4.0)
+ * clang bench_strcmp.c -DBENCH_TO_RUN=BENCH_<TEST> -O3 (Clang 7.0.0)
+ *
  * Mixed Input Results
  * -------------------
  * 
  * _Note:_ Brackets indicate time with branch prediction
+ * _Note:_ Times are fastest run
  *
  *  Platform | Branches | Giant    | Branch Tree | Error Table | No Check
  * ==========|==========|==========|=============|=============|==========
- *  1(GCC)   | 380(367) | 488(450) | 202(220)    | 380         | 135
- *  1(Clang6)| 703(435) | 368(413) | 583(411)    | 296         | 123 
- *  1(Clang7)| 656(432) | 316(354) | 553(433)    | 263         | 120 
- *  2        | 867(666) | 531(471) | 789(546)    | 354         | 177
+ *  3(Clang) | 1183(795)| 714(732) | 1266(855)   | 697         | 352
+ *  3(GCC)   | 789(624) | 672(737) | 732(602)    | 686         | 320 
  *  
  * Valid Input Results
  * -------------------
  *
  * _Note:_ Brackets indicate time with branch prediction
+ * _Note:_ Times are fastest run
  *
  *  Platform | Branches | Giant    | Branch Tree | Error Table | No Check
  * ==========|==========|==========|=============|=============|==========
- *  1(GCC)   | 144(126) | 182(148) | 176(138)    | 203         | 126
- *  1(Clang6)| 336(156) | 154(237) | 354(170)    | 313         | 127 
- *  1(Clang7)| 347(156) | 162(191) | 374(233)    | 411         | 122 
- *  2        | 432(354) | 267(300) | 444(321)    | 330         | 216
+ *  3(Clang) | 839(459) | 417(406) | 835(416)    | 720         | 346
+ *  3(GCC)   | 388(346) | 435(410) | 305(356)    | 680         | 334 
  *
  */
+
+#define BENCH_BRANCHES 1
+#define BENCH_BRANCHES_HINTS 2
+#define BENCH_GIANT 3
+#define BENCH_GIANT_HINTS 4
+#define BENCH_TREE 5
+#define BENCH_TREE_HINTS 6
+#define BENCH_TABLE 7
+#define BENCH_NONE 8
+
+
+#define BENCH_MIXED_INPUTS 1
+#define BENCH_VALID_INPUTS 2
+
+
+#ifndef BENCH_TO_RUN
+#define BENCH_TO_RUN BENCH_BRANCHES
+#endif
+
+#ifndef BENCH_INPUTS
+#define BENCH_INPUTS BENCH_MIXED_INPUTS
+#endif
+
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -93,9 +119,37 @@ struct env mixed_inputs[] = {
         {20, 200, 30, 300}, /* invalid - top left max y */
         {50, 30, 60, 70},   /* valid */
         {200, 20, 300, 30}, /* invalid - top left max x */
+        {0, 0, 10, 10},     /* valid */
+        {10, 10, 0, 0},     /* invalid - bot right less than top left */
+        {30, 30, 40, 40},   /* valid */
+        {30, 30, 20, 40},   /* invalid - bot right x */
+        {50, 50, 90, 90},   /* valid */
+        {30, 30, 40, 10},   /* invalid - bot right y */
+        {40, 40, 50, 60},   /* valid */
+        {50, 50, 200, 90},  /* invalid - bot right max x*/
+        {3, 4, 5, 5},       /* valid */
+        {4, 4, 5, 200},     /* invalid - bot right max y */
+        {10, 10, 13, 13},   /* valid */
+        {20, 200, 30, 300}, /* invalid - top left max y */
+        {50, 30, 60, 70},   /* valid */
+        {200, 20, 300, 30}, /* invalid - top left max x */
+        {0, 0, 10, 10},     /* valid */
+        {10, 10, 0, 0},     /* invalid - bot right less than top left */
+        {30, 30, 40, 40},   /* valid */
+        {30, 30, 20, 40},   /* invalid - bot right x */
+        {50, 50, 90, 90},   /* valid */
+        {30, 30, 40, 10},   /* invalid - bot right y */
+        {40, 40, 50, 60},   /* valid */
+        {50, 50, 200, 90},  /* invalid - bot right max x*/
+        {3, 4, 5, 5},       /* valid */
+        {4, 4, 5, 200},     /* invalid - bot right max y */
+        {10, 10, 13, 13},   /* valid */
+        {20, 200, 30, 300}, /* invalid - top left max y */
+        {50, 30, 60, 70},   /* valid */
+        {200, 20, 300, 30}, /* invalid - top left max x */
 };
 
-uint64_t mixed_input_count = (sizeof(mixed_inputs) / sizeof(mixed_inputs[0]));
+uint64_t mixed_inputs_count = (sizeof(mixed_inputs) / sizeof(mixed_inputs[0]));
 
 struct env valid_inputs[] = {
         {0, 0, 10, 10},     /* valid */
@@ -126,9 +180,37 @@ struct env valid_inputs[] = {
         {3, 4, 5, 5},       /* valid */
         {10, 10, 13, 13},   /* valid */
         {50, 30, 60, 70},   /* valid */  
+        {0, 0, 10, 10},     /* valid */
+        {30, 30, 40, 40},   /* valid */
+        {50, 50, 90, 90},   /* valid */
+        {40, 40, 50, 60},   /* valid */
+        {3, 4, 5, 5},       /* valid */
+        {10, 10, 13, 13},   /* valid */
+        {50, 30, 60, 70},   /* valid */
+        {0, 0, 10, 10},     /* valid */
+        {30, 30, 40, 40},   /* valid */
+        {50, 50, 90, 90},   /* valid */
+        {40, 40, 50, 60},   /* valid */
+        {3, 4, 5, 5},       /* valid */
+        {10, 10, 13, 13},   /* valid */
+        {50, 30, 60, 70},   /* valid */  
+        {0, 0, 10, 10},     /* valid */
+        {30, 30, 40, 40},   /* valid */
+        {50, 50, 90, 90},   /* valid */
+        {40, 40, 50, 60},   /* valid */
+        {3, 4, 5, 5},       /* valid */
+        {10, 10, 13, 13},   /* valid */
+        {50, 30, 60, 70},   /* valid */
+        {0, 0, 10, 10},     /* valid */
+        {30, 30, 40, 40},   /* valid */
+        {50, 50, 90, 90},   /* valid */
+        {40, 40, 50, 60},   /* valid */
+        {3, 4, 5, 5},       /* valid */
+        {10, 10, 13, 13},   /* valid */
+        {50, 30, 60, 70},   /* valid */  
 };
 
-uint64_t valid_input_count = (sizeof(valid_inputs) / sizeof(valid_inputs[0]));
+uint64_t valid_inputs_count = (sizeof(valid_inputs) / sizeof(valid_inputs[0]));
 
 #define unlikely(x)     __builtin_expect((x),0)
 
@@ -477,27 +559,59 @@ bench_error_no_check(
 /* Benchmark */
 int
 main() {
-        printf("Mixed Inputs\n");
-        printf("============\n");
-        printf("branches: %llu\n--\n", bench_error_branches(mixed_inputs, mixed_input_count));
-        printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(mixed_inputs, mixed_input_count));
-        printf("giant check: %llu\n--\n", bench_error_giant_check(mixed_inputs, mixed_input_count));
-        printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(mixed_inputs, mixed_input_count));
-        printf("branch tree: %llu\n--\n", bench_error_branch_tree(mixed_inputs, mixed_input_count));
-        printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(mixed_inputs, mixed_input_count));
-        printf("Error Table: %llu\n--\n", bench_error_table(mixed_inputs, mixed_input_count));
-        printf("No check: %llu\n--\n", bench_error_no_check(mixed_inputs, mixed_input_count));
+        /* input data */
+        struct env *inputs = 0;
+        uint64_t count = 0;
 
-        printf("\nValid Inputs\n");
-        printf("============\n");
-        printf("branches: %llu\n--\n", bench_error_branches(valid_inputs, valid_input_count));
-        printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(valid_inputs, valid_input_count));
-        printf("giant check: %llu\n--\n", bench_error_giant_check(valid_inputs, valid_input_count));
-        printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(valid_inputs, valid_input_count));
-        printf("branch tree: %llu\n--\n", bench_error_branch_tree(valid_inputs, valid_input_count));
-        printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(valid_inputs, valid_input_count));
-        printf("Error Table: %llu\n--\n", bench_error_table(valid_inputs, valid_input_count));
-        printf("No check: %llu\n--\n", bench_error_no_check(valid_inputs, valid_input_count));
+        if(BENCH_INPUTS == BENCH_MIXED_INPUTS) {
+                inputs = mixed_inputs;
+                count = mixed_inputs_count;
+        } else if (BENCH_INPUTS == BENCH_VALID_INPUTS) {
+                inputs = valid_inputs;
+                count = valid_inputs_count;
+        }
+  
+        /* benchmarks */
+        if(BENCH_TO_RUN == BENCH_BRANCHES) {
+                printf("branches: %llu\n--\n",
+                        bench_error_branches(inputs, count));
+        }
+
+        if(BENCH_TO_RUN == BENCH_BRANCHES_HINTS) {
+                printf("unlikely branches: %llu\n--\n",
+                        bench_error_unlikely_branches(inputs, count));
+        }
+
+        if(BENCH_TO_RUN == BENCH_GIANT) {
+                printf("giant check: %llu\n--\n",
+                        bench_error_giant_check(inputs, count));
+
+        }
+
+        if(BENCH_TO_RUN == BENCH_GIANT_HINTS) {
+                printf("unlikely giant check: %llu\n--\n",
+                        bench_error_unlikely_giant_check(inputs, count));
+        }
+        
+        if(BENCH_TO_RUN == BENCH_TREE) {
+                printf("branch tree: %llu\n--\n",
+                        bench_error_branch_tree(inputs, count));
+        }
+
+        if(BENCH_TO_RUN == BENCH_TREE_HINTS) {
+                printf("unlikely branch tree: %llu\n--\n",
+                        bench_error_unlikely_branch_tree(inputs, count));
+        }
+
+        if(BENCH_TO_RUN == BENCH_TABLE) {
+                printf("Error Table: %llu\n--\n",
+                        bench_error_table(inputs, count));
+        }
+
+        if(BENCH_TO_RUN == BENCH_NONE) {
+                printf("No check: %llu\n--\n",
+                        bench_error_no_check(inputs, count));
+        }
 
         return 0;
 }

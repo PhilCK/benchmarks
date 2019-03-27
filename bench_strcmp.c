@@ -10,22 +10,42 @@
  * ---------
  *
  * 1.
- * Linux Ubuntu 18 - GCC 7.3.0 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
- * gcc bench_strcmp.c -O3
+ * Linux Ubuntu 18 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
+ * gcc bench_strcmp.c -O3 (GCC 7.3.0)
  *
  * 2.
- * MacOSX 10.14 - Clang 1000.11.45 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
- * clang bench_strcmp.c -O3 
+ * MacOSX 10.14 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
+ * clang bench_strcmp.c -O3 (Clang 1000.11.45) 
+ *
+ * 3.
+ * Linux Ubuntu 16 - Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+ * gcc bench_strcmp.c -DBENCH_TO_RUN=BENCH_<TEST> -O3 (GCC 5.4.0)
+ * clang bench_strcmp.c -DBENCH_TO_RUN=BENCH_<TEST> -O3 (Clang 7.0.0)
  *
  * Results
  * -------
  *
+ * _Note:_ Picked best times
+ *
  *  Platform | strcmp | strcmp with prefix | hash runtime | hash ahead of time
  * ==========|========|====================|==============|===================
- *  1.       | 1318   | 359                | 1838         | 140
- *  2.       | 32715  | 475                | 2640         | 243 
+ *  1(GCC)   | 1318   | 359                | 1838         | 140
+ *  2(Clang) | 32715  | 475                | 2640         | 243
+ *  3(GCC)   | 4666   | 2151               | 12923        | 542
+ *  3(Clang) | 4592   | 1994               | 13449        | 509
  *
  */
+
+#define BENCH_STRCMP 1
+#define BENCH_STRCMP_PREFIX 2
+#define BENCH_HASH_RT 3
+#define BENCH_HASH_AT 4
+
+
+#ifndef BENCH_TO_RUN
+#define BENCH_TO_RUN BENCH_STRCMP
+#endif
+
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -34,21 +54,96 @@
 #include <x86intrin.h>
 
 const char *strings[] = {
-        "a", "b", "c",
-        "1", "2", "3",
-        "abc", "123",
-
+        "a", "b", "c", "1", "2", "3", "abc", "123",
         "if", "else if", "else", "break", "continue", "for", "while", "do",
         "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
         "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
         "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
         "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
         "wakeboard", "wobbleboard", "breadboard",
-
         "A really long string that takes up space",
         "This is also a longer string that takes up space, time, and sugar",
         "Everybody jump jump! Everybody jump jump jump jump jump jump!",
         "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
+        "a", "b", "c", "1", "2", "3", "abc", "123",
+        "if", "else if", "else", "break", "continue", "for", "while", "do",
+        "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
+        "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
+        "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
+        "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
+        "wakeboard", "wobbleboard", "breadboard",
+        "A really long string that takes up space",
+        "This is also a longer string that takes up space, time, and sugar",
+        "Everybody jump jump! Everybody jump jump jump jump jump jump!",
+        "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
+        "a", "b", "c", "1", "2", "3", "abc", "123",
+        "if", "else if", "else", "break", "continue", "for", "while", "do",
+        "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
+        "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
+        "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
+        "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
+        "wakeboard", "wobbleboard", "breadboard",
+        "A really long string that takes up space",
+        "This is also a longer string that takes up space, time, and sugar",
+        "Everybody jump jump! Everybody jump jump jump jump jump jump!",
+        "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
+        "a", "b", "c", "1", "2", "3", "abc", "123",
+        "if", "else if", "else", "break", "continue", "for", "while", "do",
+        "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
+        "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
+        "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
+        "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
+        "wakeboard", "wobbleboard", "breadboard",
+        "A really long string that takes up space",
+        "This is also a longer string that takes up space, time, and sugar",
+        "Everybody jump jump! Everybody jump jump jump jump jump jump!",
+        "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
+        "a", "b", "c", "1", "2", "3", "abc", "123",
+        "if", "else if", "else", "break", "continue", "for", "while", "do",
+        "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
+        "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
+        "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
+        "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
+        "wakeboard", "wobbleboard", "breadboard",
+        "A really long string that takes up space",
+        "This is also a longer string that takes up space, time, and sugar",
+        "Everybody jump jump! Everybody jump jump jump jump jump jump!",
+        "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
+        "a", "b", "c", "1", "2", "3", "abc", "123",
+        "if", "else if", "else", "break", "continue", "for", "while", "do",
+        "goto", "struct", "int", "float", "unsigned", "double", "char", "const",
+        "cpu", "gpu", "memory", "keyboard", "screen", "mouse", "template",
+        "compiler", "type", "class", "jaffa cake", "then", "reduce", "reuse",
+        "recycle", "black cats", "kiteboard", "surfboard", "skateboard",
+        "wakeboard", "wobbleboard", "breadboard",
+        "A really long string that takes up space",
+        "This is also a longer string that takes up space, time, and sugar",
+        "Everybody jump jump! Everybody jump jump jump jump jump jump!",
+        "Flowers with purple spots, bannanas and apples",
+        "The Quick Brown Fox Jumped Over The Lazy Dog",
+        "Lorim Ipsum",
+        "Foo", "Bar", "Baz", "Bin", "Fin", "Fab", "Boo", "Far", "FooBar",
+        "FooBoo", "BarBar", "Faz", "FinFar", "FabFin", "BazBoo", "BarFoo",
 
         "needle",
 
@@ -196,10 +291,21 @@ bench_hash_at() {
 /* Benchmark */
 int
 main() {
-        printf("strcmp: %llu\n--\n", bench_strcmp());
-        printf("strcmp with prefix: %llu\n--\n", bench_strcmp_prefix());
-        printf("hash rt: %llu\n--\n", bench_hash_rt());
-        printf("hash at: %llu\n--\n", bench_hash_at());
+        if(BENCH_TO_RUN == BENCH_STRCMP) {
+                printf("strcmp: %llu\n--\n", bench_strcmp());
+        }
+
+        if(BENCH_TO_RUN == BENCH_STRCMP_PREFIX) {
+                printf("strcmp with prefix: %llu\n--\n", bench_strcmp_prefix());
+        }
+
+        if(BENCH_TO_RUN == BENCH_HASH_RT) {
+                printf("hash rt: %llu\n--\n", bench_hash_rt());
+        }
+
+        if(BENCH_TO_RUN == BENCH_HASH_AT) {
+                printf("hash at: %llu\n--\n", bench_hash_at());
+        }
 
         return 0;
 }
