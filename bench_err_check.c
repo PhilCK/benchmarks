@@ -7,6 +7,8 @@
  * 
  * - Error checking with Table vs Branches
  * - Using RTDSC timer
+ * - Sample size needs to bigger
+ * - Maybe should run these tests indiviudally
  *
  * Platforms
  * ---------
@@ -15,29 +17,34 @@
  * Linux Ubuntu 18 - Intel(R) Core(TM) i7-8550U CPU @ 1.8GHz
  * gcc bench_err_check.c -O3 (GCC 7.3.0)
  * clang bench_err_check.c -O3 (Clang 6, 7)
+ *
  * 2.
  * MacOSX 10.14 - Intel(R) Core(TM) i5-5257U @ 2.70GHz
  * clang bench_err_check.c -O3 (Clang 1000.11.45)
  *
  * Mixed Input Results
  * -------------------
+ * 
+ * _Note:_ Brackets indicate time with branch prediction
  *
- *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
- * ==========|==========|==========|=======|=============|=============|==========
- *  1(gcc)   | 399      | 409      | 425   | 318         | 533         | 192
- *  1(Clang6)| 717      | 423      | 381   | 593         | 291         | 117
- *  1(Clang7)| 664      | 397      | 322   | 729         | 265         | 121
- *  2        | 660      | 564      | 636   | 837         | 375         | 168
+ *  Platform | Branches | Giant    | Branch Tree | Error Table | No Check
+ * ==========|==========|==========|=============|=============|==========
+ *  1(GCC)   | 380(367) | 488(450) | 202(220)    | 380         | 135
+ *  1(Clang6)| 703(435) | 368(413) | 583(411)    | 296         | 123 
+ *  1(Clang7)| 656(432) | 316(354) | 553(433)    | 263         | 120 
+ *  2        | 660      | 564      | 636         | 837         | 375
  *  
  * Valid Input Results
  * -------------------
  *
- *  Platform | Branches | Unlikely | Giant | Branch Tree | Error Table | No Check
- * ==========|==========|==========|=======|=============|=============|==========
- *  1(gcc)   | 174      | 170      | 338   | 136         | 334         | 114
- *  1(Clang6)| 338      | 158      | 184   | 325         | 275         | 128
- *  1(Clang7)| 323      | 148      | 148   | 342         | 266         | 125
- *  2        | 369      | 306      | 258   | 432         | 357         | 180
+ * _Note:_ Brackets indicate time with branch prediction
+ *
+ *  Platform | Branches | Giant    | Branch Tree | Error Table | No Check
+ * ==========|==========|==========|=============|=============|==========
+ *  1(GCC)   | 144(126) | 182(148) | 176(138)    | 203         | 126
+ *  1(Clang6)| 336(156) | 154(237) | 354(170)    | 313         | 127 
+ *  1(Clang7)| 347(156) | 162(191) | 374(233)    | 411         | 122 
+ *  2        | 660      | 564      | 636         | 837         | 375
  *
  */
 
@@ -123,15 +130,12 @@ struct env valid_inputs[] = {
 
 uint64_t valid_input_count = (sizeof(valid_inputs) / sizeof(valid_inputs[0]));
 
-
-#define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
 
 uint64_t
 get_time_rdtsc() {
   return __builtin_ia32_rdtsc();  
 }
-
 
 /* checks inputs with indivual if statements */
 uint64_t
@@ -185,6 +189,58 @@ bench_error_branches(
   return end - start;
 }
 
+/* checks inputs with indivual if statements */
+uint64_t
+bench_error_unlikely_branches(
+        struct env *inputs,
+        uint64_t input_count) 
+{
+        uint64_t i;
+        uint64_t invalid = 0;
+        uint64_t valid = 0;
+        uint64_t start = get_time_rdtsc();
+
+        for(i = 0; i < input_count; ++i) {
+                if(unlikely(inputs[i].top_left_x > inputs[i].bot_right_x)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                if(unlikely(inputs[i].top_left_y > inputs[i].bot_right_y)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                if(unlikely(inputs[i].top_left_x > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                if(unlikely(inputs[i].bot_right_x > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                if(unlikely(inputs[i].top_left_y > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                if(unlikely(inputs[i].bot_right_y > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                valid += 1;
+        }
+
+  uint64_t end = get_time_rdtsc();
+
+  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+  
+  return end - start;
+}
+
 
 /* checks inputs with indivual if statements */
 uint64_t
@@ -218,10 +274,9 @@ bench_error_giant_check(
   return end - start;
 }
 
-
-/* checks inputs using hints */
+/* checks inputs with indivual if statements */
 uint64_t
-bench_error_unlikely_branches(
+bench_error_unlikely_giant_check(
         struct env *inputs,
         uint64_t input_count) 
 {
@@ -231,32 +286,12 @@ bench_error_unlikely_branches(
         uint64_t start = get_time_rdtsc();
 
         for(i = 0; i < input_count; ++i) {
-                if(unlikely(inputs[i].top_left_x > inputs[i].bot_right_x)) {
-                        invalid += 1;
-                        continue;
-                }
-
-                else if(unlikely(inputs[i].top_left_y > inputs[i].bot_right_y)) {
-                        invalid += 1;
-                        continue;
-                }
-
-                else if(unlikely(inputs[i].top_left_x > 100)) {
-                        invalid += 1;
-                        continue;
-                }
-
-                else if(unlikely(inputs[i].bot_right_x > 100)) {
-                        invalid += 1;
-                        continue;
-                }
-
-                else if(unlikely(inputs[i].top_left_y > 100)) {
-                        invalid += 1;
-                        continue;
-                }
-
-                else if(unlikely(inputs[i].bot_right_y > 100)) {
+                if(unlikely((inputs[i].top_left_x > inputs[i].bot_right_x) ||
+                   (inputs[i].top_left_y > inputs[i].bot_right_y) ||
+                   (inputs[i].top_left_x > 100) ||
+                   (inputs[i].bot_right_x > 100) ||
+                   (inputs[i].top_left_y > 100) ||
+                   (inputs[i].bot_right_y > 100))) {
                         invalid += 1;
                         continue;
                 }
@@ -323,6 +358,58 @@ bench_error_branch_tree(
   return end - start;
 }
 
+
+/* checks inputs using hints */
+uint64_t
+bench_error_unlikely_branch_tree(
+        struct env *inputs,
+        uint64_t input_count) 
+{
+        uint64_t i;
+        uint64_t invalid = 0;
+        uint64_t valid = 0;
+        uint64_t start = get_time_rdtsc();
+
+        for(i = 0; i < input_count; ++i) {
+                if(unlikely(inputs[i].top_left_x > inputs[i].bot_right_x)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                else if(unlikely(inputs[i].top_left_y > inputs[i].bot_right_y)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                else if(unlikely(inputs[i].top_left_x > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                else if(unlikely(inputs[i].bot_right_x > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                else if(unlikely(inputs[i].top_left_y > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                else if(unlikely(inputs[i].bot_right_y > 100)) {
+                        invalid += 1;
+                        continue;
+                }
+
+                valid += 1;
+        }
+
+  uint64_t end = get_time_rdtsc();
+
+  printf("Valid/Invalid: %llu %llu\n", valid, invalid);
+  
+  return end - start;
+}
 
 /* checks inputs with one large if/else if block */
 uint64_t
@@ -395,7 +482,9 @@ main() {
   printf("branches: %llu\n--\n", bench_error_branches(mixed_inputs, mixed_input_count));
   printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(mixed_inputs, mixed_input_count));
   printf("giant check: %llu\n--\n", bench_error_giant_check(mixed_inputs, mixed_input_count));
+  printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(mixed_inputs, mixed_input_count));
   printf("branch tree: %llu\n--\n", bench_error_branch_tree(mixed_inputs, mixed_input_count));
+  printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(mixed_inputs, mixed_input_count));
   printf("Error Table: %llu\n--\n", bench_error_table(mixed_inputs, mixed_input_count));
   printf("No check: %llu\n--\n", bench_error_no_check(mixed_inputs, mixed_input_count));
   
@@ -404,9 +493,11 @@ main() {
   printf("branches: %llu\n--\n", bench_error_branches(valid_inputs, valid_input_count));
   printf("unlikely branches: %llu\n--\n", bench_error_unlikely_branches(valid_inputs, valid_input_count));
   printf("giant check: %llu\n--\n", bench_error_giant_check(valid_inputs, valid_input_count));
+  printf("unlikely giant check: %llu\n--\n", bench_error_unlikely_giant_check(valid_inputs, valid_input_count));
   printf("branch tree: %llu\n--\n", bench_error_branch_tree(valid_inputs, valid_input_count));
+  printf("unlikely branch tree: %llu\n--\n", bench_error_unlikely_branch_tree(valid_inputs, valid_input_count));
   printf("Error Table: %llu\n--\n", bench_error_table(valid_inputs, valid_input_count));
   printf("No check: %llu\n--\n", bench_error_no_check(valid_inputs, valid_input_count));
 
-  return 0;
+ return 0;
 }
